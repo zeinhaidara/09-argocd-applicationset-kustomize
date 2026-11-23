@@ -45,6 +45,18 @@ To add a fourth environment:
 That's it — the ApplicationSet picks up the new element and renders the
 matching Application.
 
+Run the same checks as CI (needs yamllint, kustomize 5.4.3, kubeconform 0.6.7, and Docker for the last step):
+
+```sh
+yamllint .
+mkdir -p rendered
+for env in dev stage prod; do kustomize build overlays/$env > rendered/$env.yaml; done
+kubeconform -ignore-missing-schemas -summary rendered/*.yaml
+bash test/run.sh
+```
+
+CI also runs `nginx -t` in the pinned nginx image as a non-root user with a read-only root filesystem; the exact command is in [.github/workflows/ci.yml](.github/workflows/ci.yml).
+
 ## Promoting a tag
 
 Bump `newTag` in `overlays/dev/kustomization.yaml`, let dev auto-sync, then repeat
